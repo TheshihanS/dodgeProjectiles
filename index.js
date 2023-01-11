@@ -41,7 +41,9 @@ class Sprite {
         this.position.y += this.velocity.y
     }
 }
-
+  ///////////////////////////////////////
+ //// Creating the player & enemies ////
+///////////////////////////////////////
 //declaring a const named "player" using the Sprite class created above, the user will be able to control this character
 const player = new Sprite({
     //x & y position of player
@@ -131,7 +133,7 @@ const missile = new Sprite ({
 //creating variable for the last key pressed(future potential to make the keys better) //unused for now
 let lastKey
 
-console.log(player)
+
 
 const keys = {
     a: {
@@ -153,18 +155,19 @@ const keys = {
 
 //background 
 function background() {
+    //importing background
     this.imageSource= "./Images/background.png"
     this.image = new Image()
     this.image.src = imageSource
     c.drawImage(this.image, 0, 0);
     function drawBox(x, y){
+        //importing my image for each block
         this.imageSource = "./Images/barrierSprite.png"
         this.image = new Image()
         this.image.src = imageSource
         c.drawImage(this.image, x, y);
     }
-    this.boxHeight = 25
-    this.boxWidth = 25
+    //drawing the box horizontal
     for (let i = 350; i < canvas.width; i += 25) {
         drawBox(i, 75)
         drawBox(i, 700)
@@ -172,6 +175,7 @@ function background() {
             break
         }
     }
+    //drawing the box vertical
     for (let l = 75; l < canvas.height; l += 25) {
         drawBox(350, l)
         drawBox(1200, l)
@@ -179,6 +183,7 @@ function background() {
             break
         }
     }
+    //putting movement restrictions on the player 
     if (player.position.x < 375) {
         player.velocity.x = 0
         player.position.x = 375
@@ -194,41 +199,70 @@ function background() {
         player.position.y = 675
     }
 }
+function gameOver() {
+    //displays the gameOver screen
+    this.imageSource = "./Images/gameOver.png"
+    this.image = new Image()
+    this.image.src = imageSource
+    c.drawImage(this.image, 0, 0);
+}
 
+function drawScore(score) {
+    //displaying score to the user
+    c.fillStyle = "white"
+    c.font = "30px Courier";
+    c.fillText( "Score: " + score , 200, 30);
+}
 
 
 function distance(x1, x2, y1, y2, width, height) {
     var distance
+    //using distance formula
     distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
+    //returning the distance
     return distance
 }
-function health (health) {
-    this.imageSource = "./Images/playerSprite.png"
+
+function drawHealth (health) {
+    //importing my image 
+    this.imageSource = "./Images/playerBigSprite.png"
     this.image = new Image()
     this.image.src = imageSource
     if (health === 3) {
-        c.drawImage(this.image, 1300, 50);
-        c.drawImage(this.image, 1350, 50);
-        c.drawImage(this.image, 1400, 50);
+        //drawing a "heart" to represent hp
+        c.drawImage(this.image, canvas.width / 2 - 20, canvas.height - 100);
+        c.drawImage(this.image, canvas.width / 2 - 95, canvas.height - 100);
+        c.drawImage(this.image, canvas.width / 2 - 170 , canvas.height - 100);
     } else if (health === 2) {
-        c.drawImage(this.image, 1300, 50);
-        c.drawImage(this.image, 1350, 50);
+        c.drawImage(this.image, canvas.width / 2 - 20, canvas.height - 100);
+        c.drawImage(this.image, canvas.width / 2 - 95, canvas.height - 100);
     } else if (health === 1) {
-        c.drawImage(this.image, 1300, 50);
+        c.drawImage(this.image, canvas.width / 2- 20, canvas.height - 100);
     }
 }
 //animation
-var score
+var score = 0
+  ///////////\\\\\\\\\\\\--------------------------
+ ////ANIMATE FUNCTION \\\\|||||||||||||||||||||||||
+///////////   \\\\\\\\\\\\\------------------------
 
+/**
+ * Constantly animates whatever is in this function
+ * @returns {undefined}
+ */
 function animate() {
     window.requestAnimationFrame(animate)
+    var increaseSpeed = score / 10
     
+    //invoking my background
     background()
-    
+    //constantly updating the player
     player.update()
-
-    health(player.health.h)
+    //invoking my health function
+    drawHealth(player.health.h)
     
+    
+    //only updating the enemies if they are "alive"
     if (enemy.health.h > 0) {
         enemy.update()
     }
@@ -239,46 +273,63 @@ function animate() {
         missile.update()
     }
     
-    
+    //checking distance
     var distanceCheck = distance(player.position.x, enemy.position.x, player.position.y, enemy.position.y)
+    //if its close to 25 pixel, even though it calculates distance from the top right, the enemy is moving too fast to notice
     if (distanceCheck < 25) {
         player.health.h = player.health.h - enemy.health.h
         enemy.health.h = enemy.health.h - 1
-        score--
     }
+    //if it "dies" it resets(, if it goes off the screen it resets and a player gains a point
     if (enemy.health.h === 0 || enemy.position.x > canvas.width) {
         enemy.health.h = 1
         enemy.position.x = 0
         enemy.position.y = (Math.random() * 550) + 100
-        score++
+        //after the player "dies" no longer adding to the score
+        if (player.health.h >= 0) {
+            score++
+            
+        }
+        
     }
-    
+    //finding distance by invoking my distance function
     distanceCheck = distance(player.position.x, projectile.position.x, player.position.y, projectile.position.y)
+    //if its close to 25 pixel, even though it calculates distance from the top right, the enemy is moving too fast to notice
     if (distanceCheck < 25) {
         player.health.h = player.health.h - projectile.health.h
         projectile.health.h = projectile.health.h - 1
-        score--
     }
+    //same conditions mentioned above
     if (projectile.health.h === 0 || projectile.position.x > canvas.width) {
         projectile.health.h = 1
         projectile.position.x = 0
-        projectile.position.y = (Math.random() * 550) + 100
-        score++
+        projectile.position.y = (Math.random() * 650) + 100
+        if (player.health.h >= 0) {
+            score++
+            
+        }
+        
+        
     }
     
     distanceCheck = distance(player.position.x, missile.position.x, player.position.y, missile.position.y, missile.dimensions.height, missile.dimensions.width)
     
-    
+    //using a bunch of conditions
     if (player.position.x < missile.position.x + 100 && player.position.x + 12.5 > missile.position.x && player.position.y > missile.position.y && player.position.y + 12.5 < missile.position.y + 50 || distanceCheck < 25) {
         player.health.h = player.health.h - missile.health.h
         missile.health.h = missile.health.h - 1
-        score--
     }
+    //same conditions mentioned above
     if (missile.health.h === 0 || missile.position.x > canvas.width) {
         missile.health.h = 1
         missile.position.x = 0
         missile.position.y = player.position.y - 12.5
-        score++
+        
+        if (player.health.h >= 0) {
+            score++
+            
+        }
+        
     }
     
     
@@ -291,7 +342,7 @@ function animate() {
     projectile.velocity.x = 0
     projectile.velocity.y = 0
     
-    
+    //if said key such as a,d,w,s is pressed the character would move in their respectable direction
     if (keys.a.pressed) {
         player.velocity.x = -3;
     }
@@ -305,11 +356,21 @@ function animate() {
         player.velocity.y = 3;
     }
     
-    enemy.velocity.x = 6
-    projectile.velocity.x = 10
-    missile.velocity.x = 12
+    enemy.velocity.x = 8 + increaseSpeed
+    projectile.velocity.x = 10 + increaseSpeed
+    missile.velocity.x = 12 + increaseSpeed
+    //draws the score when the palyer is alive
+    if (player.health.h >= 0) {
+        drawScore(score)
+    }
+    //draws the score in the top right if the player hasn't "died" yet
+     if (player.health.h < 0) {
+        gameOver()
+        c.fillStyle = "red"
+        c.font = "30px Courier";
+        c.fillText( "Your score was: " + score , canvas.width / 2 - 200, 750);
+    }
     
-     
     
 }
 
@@ -320,6 +381,7 @@ window.addEventListener('keydown', (event) => {
     switch (event.key) {
         case 'd':
             keys.d.pressed = true
+            //last key if i wanted to improve the controls in the future
             lastKey = 'd'
             break
         case 'a':
@@ -362,8 +424,9 @@ window.addEventListener('keyup', (event) => {
     console.log(event.key)
 })
 
-//problems to fix checklist
+//problems to fix checklist T_T
 //need a projectile to get character so the character cannot stand still (done)
 //add sprites (done)
-//display health to user
-//display score to user
+//display health to user (done)
+//display score to user (done)
+//commment :D (done?)
